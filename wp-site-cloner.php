@@ -191,11 +191,14 @@ final class WP_Site_Cloner {
 		$from_site_prefix_length = strlen( $this->from_site_prefix );
 		$from_site_prefix_like   = $wpdb->esc_like( $this->from_site_prefix );
 
+		// @todo Needs Ludicrous DB support
+		$schema = DB_NAME;
+
 		// Get sources Tables
 		if ( $this->from_site_id === (int) get_current_site()->blog_id ) {
 			$from_site_tables = $this->get_primary_tables( $this->from_site_prefix );
 		} else {
-			$sql_query        = $wpdb->prepare( 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \'%s\' AND TABLE_NAME LIKE \'%s\'', DB_NAME, $from_site_prefix_like . '%' );
+			$sql_query        = $wpdb->prepare( 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \'%s\' AND TABLE_NAME LIKE \'%s\'', $schema, $from_site_prefix_like . '%' );
 			$from_site_tables = $this->do_sql_query( $sql_query, 'col' );
 		}
 
@@ -207,10 +210,10 @@ final class WP_Site_Cloner {
 			$this->do_sql_query( 'DROP TABLE IF EXISTS `' . $table_name . '`' );
 
 			// Create new table from source table
-			$this->do_sql_query( 'CREATE TABLE IF NOT EXISTS `' . $table_name . '` LIKE `' . DB_NAME . '`.`' . $table . '`' );
+			$this->do_sql_query( 'CREATE TABLE IF NOT EXISTS `' . $table_name . '` LIKE `' . $schema . '`.`' . $table . '`' );
 
 			// Populate database with data from source table
-			$this->do_sql_query( 'INSERT `' . $table_name . '` SELECT * FROM `' . DB_NAME . '`.`' . $table . '`' );
+			$this->do_sql_query( 'INSERT `' . $table_name . '` SELECT * FROM `' . $schema . '`.`' . $table . '`' );
 		}
 	}
 
