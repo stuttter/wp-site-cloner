@@ -80,7 +80,8 @@ final class WP_Site_Cloner {
 			'meta'          => array( 'public' => 1 ),
 			'from_site_id'  => 0,
 			'to_network_id' => get_current_site()->id,
-			'user_id'       => get_current_user_id()
+			'user_id'       => get_current_user_id(),
+			'callback'      => 'wpmu_create_blog'
 		) );
 	}
 
@@ -148,7 +149,8 @@ final class WP_Site_Cloner {
 
 		// Try to create
 		$wpdb->hide_errors();
-		$site_id = wpmu_create_blog(
+		$site_id = call_user_func(
+			$this->arguments['callback'],
 			$this->arguments['domain'],
 			$this->arguments['path'],
 			$this->arguments['title'],
