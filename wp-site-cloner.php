@@ -304,8 +304,10 @@ final class WP_Site_Cloner {
 		$to_upload_url = str_replace( network_site_url(), get_bloginfo( 'url' ) . '/', $dir[ 'baseurl' ] );
 		$to_blog_url   = get_blog_option( $this->to_site_id, 'siteurl' );
 
+		// Switch back to "from" site
 		restore_current_blog();
 
+		// Setup empty tables array
 		$tables = array();
 
 		// Bugfix : escape '_' , '%' and '/' character for mysql 'like' queries
@@ -345,6 +347,9 @@ final class WP_Site_Cloner {
 				$this->update( $this->to_site_prefix . $table, $fields, $from_string, $to_string );
 			}
 		}
+
+		// Restore back to original source site
+		restore_current_blog();
 
 		// Clear cache
 		refresh_blog_details( $this->to_site_id );
