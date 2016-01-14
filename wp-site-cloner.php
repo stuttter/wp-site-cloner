@@ -79,10 +79,15 @@ final class WP_Site_Cloner {
 			'path'          => '/',
 			'title'         => '',
 			'meta'          => array( 'public' => 1 ),
-			'from_site_id'  => '',
+			'from_site_id'  => 0,
 			'to_network_id' => get_current_site()->id,
 			'user_id'       => get_current_user_id()
 		) );
+
+		// Bail if no source siteID
+		if ( empty( $this->arguments['from_site_id'] ) ) {
+			return;
+		}
 
 		return (int) $this->clone_site();
 	}
