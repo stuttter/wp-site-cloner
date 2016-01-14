@@ -23,7 +23,8 @@ defined( 'ABSPATH' ) || exit;
  * @return \WP_Site_Cloner
  */
 function wp_clone_site( $args = array() ) {
-	return new WP_Site_Cloner( $args );
+	$cloner = new WP_Site_Cloner( $args );
+	return $cloner->clone_site();
 }
 
 /**
@@ -72,8 +73,6 @@ final class WP_Site_Cloner {
 	 * @return int
 	 */
 	public function __construct( $args = array() ) {
-
-		// Parse arguments
 		$this->arguments = wp_parse_args( $args, array(
 			'domain'        => '',
 			'path'          => '/',
@@ -83,13 +82,6 @@ final class WP_Site_Cloner {
 			'to_network_id' => get_current_site()->id,
 			'user_id'       => get_current_user_id()
 		) );
-
-		// Bail if no source siteID
-		if ( empty( $this->arguments['from_site_id'] ) ) {
-			return;
-		}
-
-		return (int) $this->clone_site();
 	}
 
 	/**
@@ -99,7 +91,12 @@ final class WP_Site_Cloner {
 	 *
 	 * @param  array $args parameters from form
 	 */
-	private function clone_site() {
+	public function clone_site() {
+
+		// Bail if no source siteID
+		if ( empty( $this->arguments['from_site_id'] ) ) {
+			return;
+		}
 
 		// Setup sites
 		$this->from_site_id = (int) $this->arguments[ 'from_site_id' ];
