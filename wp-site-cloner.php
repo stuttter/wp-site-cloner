@@ -81,7 +81,8 @@ final class WP_Site_Cloner {
 			'from_site_id'  => 0,
 			'to_network_id' => get_current_site()->id,
 			'user_id'       => get_current_user_id(),
-			'callback'      => 'wpmu_create_blog'
+			'callback'      => 'wpmu_create_blog',
+			'cleanup'       => ''
 		) );
 	}
 
@@ -128,10 +129,13 @@ final class WP_Site_Cloner {
 		@ini_set( 'memory_limit',       '1024M' );
 		@ini_set( 'max_execution_time', '0'     );
 
-		// Copy Site - Data
+		// Copy site and all of it's data
 		$this->db_copy_tables();
 		$this->db_set_options();
 		$this->db_update_data();
+
+		// Maybe run a clean-up routine
+		$this->cleanup_site();
 
 		// Return the new site ID
 		return (int) $this->to_site_id;
@@ -140,6 +144,12 @@ final class WP_Site_Cloner {
 	/**
 	 * Attempt to create a new site
 	 *
+	 * This method checks if your callback function exists. If it does, it calls
+	 * it; if not, it calls do_action() with the name of your callback.
+	 *
+	 * Your custom callback function should be based on wpmu_create_blog(), and
+	 * take care to mimic it's quirky requirements.
+	 *
 	 * @since 0.1.0
 	 *
 	 * @return int
@@ -147,23 +157,59 @@ final class WP_Site_Cloner {
 	private function create_site() {
 		global $wpdb;
 
-		// Try to create
+		// Default site ID
+		$site_id = false;
+
+		// Always hide DB errors
 		$wpdb->hide_errors();
-		$site_id = call_user_func(
-			$this->arguments['callback'],
-			$this->arguments['domain'],
-			$this->arguments['path'],
-			$this->arguments['title'],
-			$this->arguments['user_id'],
-			$this->arguments['meta'],
-			$this->arguments['to_network_id']
-		);
+
+		// Try to create
+		if ( function_exists( $this->arguments['callback'] ) ) {
+			$site_id = call_user_func(
+				$this->arguments['callback'],
+				$this->arguments['domain'],
+				$this->arguments['path'],
+				$this->arguments['title'],
+				$this->arguments['user_id'],
+				$this->arguments['meta'],
+				$this->arguments['to_network_id']
+			);
+		} else {
+			$site_id = apply_filters( $this->arguments['callback'], $this->arguments );
+		}
+
+		// Restore error visibility
 		$wpdb->show_errors();
 
 		// Return site ID or false
 		return ! is_wp_error( $site_id )
 			? (int) $site_id
 			: false;
+	}
+
+	/**
+	 * Attempt to clean up a new site
+	 *
+	 * This method checks if your clean-up callback function exists. If it does,
+	 * it calls it; if not, it calls do_action() with the name of your callback.
+	 *
+	 * @since 0.1.0
+	 *
+	 * @return int
+	 */
+	private function cleanup_site() {
+
+		// Bail if no clean-up function passed
+		if ( empty( $this->arguments['cleanup'] ) ) {
+			return;
+		}
+
+		// Try to clean-up
+		if ( function_exists( $this->arguments['cleanup'] ) ) {
+			call_user_func( $this->arguments['cleanup'] );
+		} else {
+			do_action( $this->arguments['cleanup'] );
+		}
 	}
 
 	/**
