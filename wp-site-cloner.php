@@ -204,12 +204,18 @@ final class WP_Site_Cloner {
 			return;
 		}
 
+		// Switch to the new site
+		switch_to_blog( $this->to_site_id );
+
 		// Try to clean-up
 		if ( function_exists( $this->arguments['cleanup'] ) ) {
 			call_user_func( $this->arguments['cleanup'] );
 		} else {
 			do_action( $this->arguments['cleanup'] );
 		}
+
+		// Switch back
+		restore_current_blog();
 	}
 
 	/**
