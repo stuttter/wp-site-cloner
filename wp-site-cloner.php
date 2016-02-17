@@ -2,12 +2,15 @@
 
 /**
  * Plugin Name: WP Site Cloner
- * Plugin URI:  https://flox.io
- * Description: Clone a site
+ * Plugin URI:  https://wordpress.org/plugins/wp-site-cloner/
  * Author:      John James Jacoby
- * Author URI:  https://profiles.wordpress.org/johnjamesjacoby
+ * Author URI:  https://profiles.wordpress.org/johnjamesjacoby/
+ * License:     GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Description: Create sites with content from other sites
  * Version:     0.1.0
- * License:     GPLv2 or later (license.txt)
+ * Text Domain: wp-site-cloner
+ * Domain Path: /assets/lang/
  */
 
 // Exit if accessed directly
