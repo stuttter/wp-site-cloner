@@ -321,7 +321,7 @@ final class WP_Site_Cloner {
 	 * @return array
 	 */
 	private function get_default_tables() {
-        return array (
+        return array(
 			'terms'              => array(),
 			'termmeta'           => array(),
 			'term_taxonomy'      => array(),
@@ -381,8 +381,14 @@ final class WP_Site_Cloner {
 			$tables[ $table ] = $columns;
 		}
 
+		// Maybe don't copy _links
+		$default_tables = $this->get_default_tables();
+		if ( ! get_blog_option( $this->from_site_id, 'link_manager_enabled', 0 ) ) {
+			unset( $default_tables['links'] );
+		}
+
 		// Setup tables & fields to loop through
-		foreach ( $this->get_default_tables() as $table => $fields ) {
+		foreach ( $default_tables as $table => $fields ) {
 			$tables[ $table ] = $fields;
 		}
 
