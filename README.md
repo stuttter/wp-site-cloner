@@ -14,7 +14,7 @@ WP Site Cloner allows the copying of a site's content with just 1 function.
 
 ### Does this create new database tables?
 
-No. There are no new database tables with this plugin.
+Technically, that's the only thing that it does!
 
 ### Does this modify existing database tables?
 
@@ -36,6 +36,10 @@ wp_clone_site( array(
 	)
 ) );
 ```
+
+### What about `wp_links`?
+
+If `link_manager_enabled` is falsey on the source site, it will not get copied over to the new one.
 
 ### Where can I get support?
 
