@@ -137,6 +137,9 @@ final class WP_Site_Cloner {
 		$this->db_set_options();
 		$this->db_update_data();
 
+		// Restore site options...because they will have been mucked with in db_update_data().
+		$this->db_set_options();
+
 		// Maybe run a clean-up routine
 		$this->cleanup_site();
 
@@ -396,11 +399,28 @@ final class WP_Site_Cloner {
 		}
 
 		// Setup array of old & new strings to replace
-		$string_to_replace = array(
-			$from_upload_url        => $to_upload_url,
-			$from_blog_url          => $to_blog_url,
-			$this->from_site_prefix => $this->to_site_prefix
-		);
+		if ( 0 === strpos( $to_upload_url, $to_blog_url ) ) {
+			// if $to_blog_url is a leading substring of $to_upload_url
+			// then we need to create a "temporary" string for the upload_url
+			// otherwise the replaced strings won't be correct.
+			// this is analogous to swaping the value of 2 variables using
+			// a 3rd temporary variable.
+			$tmp = str_replace( $to_blog_url, $this->placeholder_escape(), $to_upload_url );
+
+			$string_to_replace = array(
+				$from_upload_url        => $tmp,
+				$from_blog_url          => $to_blog_url,
+				$tmp                    => $to_upload_url,
+				$this->from_site_prefix => $this->to_site_prefix
+			);
+		}
+		else {
+			$string_to_replace = array(
+				$from_upload_url        => $to_upload_url,
+				$from_blog_url          => $to_blog_url,
+				$this->from_site_prefix => $this->to_site_prefix
+			);
+		}
 
 		// Try to update data in fields
 		foreach ( $tables as $table => $fields ) {
@@ -475,10 +495,7 @@ final class WP_Site_Cloner {
 		$new = $val;
 
 		if ( is_string( $val ) ) {
-			$pos = strpos( $val, $to_string );
-			if ( $pos === false ) {
-				$new = str_replace( $from_string, $to_string, $val );
-			}
+			$new = str_replace( $from_string, $to_string, $val );
 		}
 
 		return $new;
@@ -659,6 +676,31 @@ final class WP_Site_Cloner {
 		$new_object = unserialize( $object_array_serialized );
 
 		return $new_object;
+	}
+
+	/**
+	 * Generates and returns a placeholder escape string.
+	 *
+	 * Uses the same algorithm as used by {@link https://developer.wordpress.org/reference/classes/wpdb/placeholder_escape/ wpdb::placeholder_escape()},
+	 * except that "punctuation" surrounding the value is '[' and ']' instead of '{' and '}'.
+	 * The change in punctuation is so that the value can be used in query string passed to `$wpdb->query()`
+	 * without causing `$wpdb` to invoke it's processing of it's placeholder escapes.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @return string
+	 */
+	protected function placeholder_escape() {
+		global $wpdb;
+
+		static $placeholder;
+
+		if ( ! $placeholder ) {
+			$placeholder = $wpdb->placeholder_escape();
+			$placeholder = str_replace( array( '{', '}' ), array( '[', ']' ), $placeholder );
+		}
+
+		return $placeholder;
 	}
 
 	/**
