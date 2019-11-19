@@ -70,8 +70,6 @@ class Test_Posts extends WP_Site_Cloner_UnitTestCase {
 
 	/**
 	 * Test that string replacements are correct in a post with a gallery block with a sub-directory clone.
-	 *
-	 * @group failure_010
 	 */
 	function test_subdirectory_gallery_block() {
 		$post_id      = self::factory()->post->create_object( array( 'post_content' => $this->gen_gallery_block() ) );
@@ -83,14 +81,11 @@ class Test_Posts extends WP_Site_Cloner_UnitTestCase {
 		$expected = $this->gen_gallery_block();
 		$actual   = get_post( $post_id )->post_content;
 
-		// note: in v0.1.0 this will fail, because the string replacements aren't correct.
-		$this->assertEquals( $expected, $actual, self::$known_to_failure_010_string_replacement );
+		$this->assertEquals( $expected, $actual );
 	}
 
 	/**
 	 * Test that string replacements are correct in a post with a gallery block with a sub-domain clone.
-	 *
-	 * @group failure_010
 	 */
 	function test_subddomain_gallery_block() {
 		$post_id      = self::factory()->post->create_object( array( 'post_content' => $this->gen_gallery_block() ) );
@@ -102,8 +97,7 @@ class Test_Posts extends WP_Site_Cloner_UnitTestCase {
 		$expected = $this->gen_gallery_block();
 		$actual   = get_post( $post_id )->post_content;
 
-		// note: in v0.1.0 this will fail, because the string replacements aren't correct.
-		$this->assertEquals( $expected, $actual, self::$known_to_failure_010_string_replacement );
+		$this->assertEquals( $expected, $actual );
 	}
 
 	/**

@@ -156,7 +156,7 @@ class Test_Options extends WP_Site_Cloner_UnitTestCase {
 		);
 		$actual = get_option( 'test' );
 
-		$this->assertEquals( $expected, $actual, self::$known_to_failure_010_string_replacement );
+		$this->assertEquals( $expected, $actual );
 	}
 
 	/**
@@ -304,7 +304,7 @@ class Test_Options extends WP_Site_Cloner_UnitTestCase {
 		);
 		$actual   = get_option( 'test' );
 
-		$this->assertEquals( $expected, $actual, self::$known_to_failure_010_string_replacement );
+		$this->assertEquals( $expected, $actual );
 	}
 }
 
