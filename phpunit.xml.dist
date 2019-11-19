@@ -1,0 +1,27 @@
+<phpunit
+		backupGlobals='false'
+		backupStaticAttributes='false'
+		bootstrap='tests/phpunit/plugin-includes/bootstrap.php'
+		colors='true'
+		convertErrorsToExceptions='true'
+		convertNoticesToExceptions='true'
+		convertWarningsToExceptions='true'
+		processIsolation='false'
+		stopOnError='false'
+		stopOnFailure='false'
+		stopOnIncomplete='false'
+		stopOnSkipped='false'
+		syntaxCheck='false'
+		verbose='true'
+        >
+    <testsuites>
+        <!-- Default test suite to run all tests -->
+        <testsuite>
+            <directory suffix='.php'>tests/phpunit/tests</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+		<const name='WP_TESTS_MULTISITE' value='1' />
+        <const name='PLUGIN_TEST_NAME' value='wp-site-cloner' />
+    </php>
+</phpunit>
