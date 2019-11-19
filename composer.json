@@ -1,0 +1,23 @@
+{
+  "name": "stuttter/wp-site-cloner",
+  "description": "Create sites with content from other sites",
+  "homepage": "https://github.com/stuttter/wp-site-cloner",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "John James Jacoby",
+      "email": "johnjamesjacoby@me.com"
+    },
+    {
+      "name": "Paul \"Sparrow Hawk\" Biron",
+      "email": "paul@sparrowhawkcomputing.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": ">4.8.20 <6.0"
+  }
+}
