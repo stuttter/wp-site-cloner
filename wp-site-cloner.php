@@ -539,8 +539,8 @@ final class WP_Site_Cloner {
 			if ( is_array( $row[ $field ] ) ) {
 				$row[ $field ] = $this->replace_recursive( $row[ $field ], $from_string, $to_string );
 
-			} else if ( is_object( $row[ $field ] ) || $row[ $field ] instanceof __PHP_Incomplete_Class ) {
 				$array_object = ( array ) $row[ $field ];
+			} else if ( is_object( $row[ $field ] ) ) {
 				$array_object = $this->replace_recursive( $array_object, $from_string, $to_string );
 
 				foreach ( $array_object as $key => $field ) {
