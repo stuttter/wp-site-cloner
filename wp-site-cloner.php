@@ -536,17 +536,8 @@ final class WP_Site_Cloner {
 				$double_serialize = true;
 			}
 
-			if ( is_array( $row[ $field ] ) ) {
-				$row[ $field ] = $this->replace_recursive( $row[ $field ], $from_string, $to_string );
-
-			} else if ( is_object( $row[ $field ] ) ) {
-				$array_object = $this->get_object_vars( $row[ $field ] );
-				$array_object = $this->replace_recursive( $array_object, $from_string, $to_string );
-
-				$row[ $field ] = $this->set_object_vars( $row[ $field ], $array_object );
-			} else {
-				$row[ $field ] = $this->replace( $row[ $field ], $from_string, $to_string );
-			}
+			// recurse on the unserialized value.
+			$row[ $field ] = $this->try_replace( $row, $field, $from_string, $to_string );
 
 			$row[ $field ] = serialize( $row[ $field ] );
 
@@ -554,7 +545,14 @@ final class WP_Site_Cloner {
 			if ( $double_serialize ) {
 				$row[ $field ] = serialize( $row[ $field ] );
 			}
-		} else {
+		} elseif ( is_array( $row[ $field ] ) ) {
+			$row[ $field ] = $this->replace_recursive( $row[ $field ], $from_string, $to_string );
+		} elseif ( is_object( $row[ $field ] ) ) {
+			$array_object = $this->get_object_vars( $row[ $field ] );
+			$array_object = $this->replace_recursive( $array_object, $from_string, $to_string );
+
+			$row[ $field ] = $this->set_object_vars( $row[ $field ], $array_object );
+		} elseif ( is_string( $row[ $field ] ) ) {
 			$row[ $field ] = $this->replace( $row[ $field ], $from_string, $to_string );
 		}
 
