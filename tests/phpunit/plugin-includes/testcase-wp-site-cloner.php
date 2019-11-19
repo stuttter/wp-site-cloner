@@ -7,14 +7,6 @@
  */
 class WP_Site_Cloner_UnitTestCase extends WP_UnitTestCase {
 	/**
-	 * Message to use for PHP fatal errors when we know they will happen in 0.1.0 because of bugs in setting object properties
-	 * aren't complete.
-	 *
-	 * @var string
-	 */
-	static $known_to_error_010_object_property_string_replacement = 'Test known to cause PHP error/warning in v0.1.0 because of a bug when replacing strings in serialized objects.';
-
-	/**
 	 * Message to use for failed assertions when we know they will fail in 0.1.0 because string replacements
 	 * aren't complete.
 	 *

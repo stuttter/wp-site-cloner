@@ -200,8 +200,6 @@ class Test_Options extends WP_Site_Cloner_UnitTestCase {
 
 	/**
 	 * Test that string replacements happen in object property values.
-	 *
-	 * @group error_010
 	 */
 	function test_option_value_object() {
 		global $wpdb;
@@ -214,21 +212,7 @@ class Test_Options extends WP_Site_Cloner_UnitTestCase {
 		);
 		add_option( 'test', $option );
 
-		try {
-			// cloning will result in a PHP fatal error in v0.1.0.
-			$to_site_id = $this->subdirectory_clone_site();
-		}
-		catch ( Throwable $ex ) {
-			$execeptionClass = get_class( $ex );
-
-			throw new $execeptionClass(
-				self::$known_to_error_010_object_property_string_replacement,
-				$ex->getCode(),
-				__FILE__,
-				__LINE__,
-				$ex
-			);
-		}
+		$to_site_id = $this->subdirectory_clone_site();
 
 		switch_to_blog( $to_site_id );
 
@@ -245,8 +229,6 @@ class Test_Options extends WP_Site_Cloner_UnitTestCase {
 
 	/**
 	 * Test that objects with property names that match replacement strings are not replaced.
-	 *
-	 * @group error_010
 	 */
 	function test_option_value_object_property_name_not_replaced() {
 		global $wpdb;
@@ -256,21 +238,7 @@ class Test_Options extends WP_Site_Cloner_UnitTestCase {
 		);
 		add_option( 'test', $option );
 
-		try {
-			// cloning will result in a PHP fatal error in v0.1.0.
-			$to_site_id = $this->subdirectory_clone_site();
-		}
-		catch ( Throwable $ex ) {
-			$execeptionClass = get_class( $ex );
-
-			throw new $execeptionClass(
-				self::$known_to_error_010_object_property_string_replacement,
-				$ex->getCode(),
-				__FILE__,
-				__LINE__,
-				$ex
-			);
-		}
+		$to_site_id = $this->subdirectory_clone_site();
 
 		switch_to_blog( $to_site_id );
 
@@ -282,39 +250,13 @@ class Test_Options extends WP_Site_Cloner_UnitTestCase {
 
 	/**
 	 * Test that string replacements happen correctly in objects with protected and private properties.
-	 *
-	 * @group error_010
 	 */
 	function test_option_value_object_with_protected_private_props() {
 		$option = new Protected_Private_Properties();
 
 		add_option( 'test', $option );
 
-		try {
-			// cloning will result in a PHP fatal error in v0.1.0.
-			$to_site_id = $this->subdirectory_clone_site();
-		}
-		catch ( Throwable $ex ) {
-			$execeptionClass = get_class( $ex );
-
-			switch ( $execeptionClass ) {
-				case 'Error':
-					throw new $execeptionClass(
-						self::$known_to_error_010_object_property_string_replacement,
-						$ex->getCode(),
-						$ex
-					);
-
-				default:
-					throw new $execeptionClass(
-						self::$known_to_error_010_object_property_string_replacement,
-						$ex->getCode(),
-						__FILE__,
-						__LINE__,
-						$ex
-					);
-			}
-		}
+		$to_site_id = $this->subdirectory_clone_site();
 
 		switch_to_blog( $to_site_id );
 
@@ -326,8 +268,6 @@ class Test_Options extends WP_Site_Cloner_UnitTestCase {
 
 	/**
 	 * Test that string replacements recusively happen in object properties.
-	 *
-	 * @group error_010
 	 */
 	function test_option_value_object_with_recusive_props() {
 		global $wpdb;
@@ -347,21 +287,7 @@ class Test_Options extends WP_Site_Cloner_UnitTestCase {
 		);
 		add_option( 'test', $option );
 
-		try {
-			// cloning will result in a PHP fatal error in v0.1.0.
-			$to_site_id = $this->subdirectory_clone_site();
-		}
-		catch ( Throwable $ex ) {
-			$execeptionClass = get_class( $ex );
-
-			throw new $execeptionClass(
-				self::$known_to_error_010_object_property_string_replacement,
-				$ex->getCode(),
-				__FILE__,
-				__LINE__,
-				$ex
-			);
-		}
+		$to_site_id = $this->subdirectory_clone_site();
 
 		switch_to_blog( $to_site_id );
 
