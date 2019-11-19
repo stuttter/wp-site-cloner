@@ -126,8 +126,6 @@ class Test_Options extends WP_Site_Cloner_UnitTestCase {
 
 	/**
 	 * Test that string replacements recusively happen in array values.
-	 *
-	 * @group failure_010
 	 */
 	function test_option_value_array_recursive() {
 		global $wpdb;
