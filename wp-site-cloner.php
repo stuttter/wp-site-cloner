@@ -539,13 +539,11 @@ final class WP_Site_Cloner {
 			if ( is_array( $row[ $field ] ) ) {
 				$row[ $field ] = $this->replace_recursive( $row[ $field ], $from_string, $to_string );
 
-				$array_object = ( array ) $row[ $field ];
 			} else if ( is_object( $row[ $field ] ) ) {
+				$array_object = $this->get_object_vars( $row[ $field ] );
 				$array_object = $this->replace_recursive( $array_object, $from_string, $to_string );
 
-				foreach ( $array_object as $key => $field ) {
-					$row[ $field ]->$key = $field;
-				}
+				$row[ $field ] = $this->set_object_vars( $row[ $field ], $array_object );
 			} else {
 				$row[ $field ] = $this->replace( $row[ $field ], $from_string, $to_string );
 			}
@@ -561,6 +559,108 @@ final class WP_Site_Cloner {
 		}
 
 		return $row[ $field ];
+	}
+
+	/**
+	 * Get the non-static properties of an object as an associative array.
+	 *
+	 * Like PHP's builtin {@link https://www.php.net/manual/en/function.get-object-vars.php get_object_vars()}
+	 * except it also gets protected and private properties, even when they are not in scope.
+	 *
+	 * Public properties will have keys such as `PropName` where `PropName` is the property name.
+	 *
+	 * Protected properties will have keys such as `'\0' . '*' . '\0' . PropName`,
+	 * where `PropName` is the property name.
+	 *
+	 * Private properties will have keys such as `'\0' . ClassName . '\0' . PropName`,
+	 * where `ClassName` is the class that declared the private property (which may be
+	 * an inherited base class) and `PropName` is the property name.
+	 *
+	 * Works with instances of {@link https://www.php.net/manual/en/reserved.classes.php __PHP_Incomplete_Class}
+	 * and {@link https://www.php.net/manual/en/reserved.classes.php stdClass}.
+	 *
+	 * @see WP_Site_Cloner::set_object_vars()
+	 *
+	 * @since 0.1.0
+	 *
+	 * @param object $object The object whose properties are to be gotten.
+	 * @return array         Keys are property names, values are property values.
+	 */
+	protected function get_object_vars( $object ) {
+		if ( ! is_object( $object ) ) {
+			return array();
+		}
+
+		return (array) $object;
+	}
+
+	/**
+	 * Set the non-static property values of an object to those in an associative array.
+	 *
+	 * Functionally equivalent to the following:
+	 *
+	 * class Foo {
+	 *     public $bar = 'baz';
+	 * }
+	 * $foo = new Foo();
+	 *
+	 * $array = array( 'bar' => 'biff' );
+	 * foreach ( $array as $key => $value ) {
+	 *     // this will cause a PHP fatal error for protected and private properties.
+	 *     $foo->{$key} = $value;
+	 * }
+	 *
+	 * except that it allows setting values for protected and private properties.
+	 *
+	 * If `$array` contains keys that are not delcared properties of `$object`, they will
+	 * become "dynamic" properties of the instance.
+	 *
+	 * Works with instances of {@link https://www.php.net/manual/en/reserved.classes.php __PHP_Incomplete_Class}
+	 * and {@link https://www.php.net/manual/en/reserved.classes.php stdClass}.
+	 *
+	 * @see WP_Site_Cloner::get_object_vars()
+	 *
+	 * @since 0.2.0
+	 *
+	 * @param object $object The object whose properties are to be set.
+	 * @param array $array   Keys are property names, values are property values.
+	 * @return object        `$object` with new property values set.
+	 *
+	 * @todo see how the phpdoc-parser deals with the above inline code.
+	 * @todo while it might be "more correct" to use reflection to set protected and
+	 *       private properties, reflection doesn't work with stdClass and __PHP_Incomplete_Class,
+	 *       so we'd still need something like this for those cases.  Also, reflection
+	 *       doesn't completely work when an object has "dynamic" properties, and such
+	 *       properties get serialized...
+	 */
+	protected function set_object_vars( $object, $array ) {
+		if ( ! is_object( $object ) ) {
+			return $object;
+		}
+
+		// convert the object into an array.
+		$object_vars = $this->get_object_vars( $object );
+
+		// merge that object array with $array.
+		// if $array contains keys that are not properties of $object,
+		// those keys will become "dynamic" properties of $object.
+		$object_vars = array_merge( $object_vars, $array );
+
+		// serialize the object array.
+		$object_array_serialized = serialize( $object_vars );
+
+		// replace the array serialization syntax with object serialization syntax.
+		$className = get_class( $object );
+		$object_array_serialized = preg_replace(
+			'/^a:/',
+			sprintf( 'O:%d:"%s":', strlen( $className ), $className ),
+			$object_array_serialized
+		);
+
+		// reserailize the new object.
+		$new_object = unserialize( $object_array_serialized );
+
+		return $new_object;
 	}
 
 	/**
