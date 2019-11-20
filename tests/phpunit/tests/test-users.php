@@ -8,8 +8,6 @@
 class Test_Users extends WP_Site_Cloner_UnitTestCase {
 	/**
 	 * Test that users are copied when a site is cloned.
-	 *
-	 * @group failure_010
 	 */
 	function test_users_copied() {
 		// add some users to the from site.
@@ -33,8 +31,8 @@ class Test_Users extends WP_Site_Cloner_UnitTestCase {
 
 		$to_users = $this->get_comparable_users();
 
-		$this->assertEquals( count( $from_users ), count( $to_users ), self::$known_to_failure_010_users_not_copied );
-		$this->assertEquals( $from_users, $to_users, self::$known_to_failure_010_users_not_copied );
+		$this->assertEquals( count( $from_users ), count( $to_users ) );
+		$this->assertEquals( $from_users, $to_users );
 	}
 
 	/**

@@ -22,13 +22,6 @@ class WP_Site_Cloner_UnitTestCase extends WP_UnitTestCase {
 	static $known_to_failure_010_uploadds_not_copied   = 'Test known to fail in v0.1.0 because uploads aren\'t copied.';
 
 	/**
-	 * Message to use for failed assertions when we know they will fail in 0.1.0 because users are not copied.
-	 *
-	 * @var string
-	 */
-	static $known_to_failure_010_users_not_copied   = 'Test known to fail in v0.1.0 because users aren\'t copied.';
-
-	/**
 	 * Ensure there is a current user...since the current user is by default used as the admin user for cloned sites.
 	 *
 	 * @since 0.2.0
