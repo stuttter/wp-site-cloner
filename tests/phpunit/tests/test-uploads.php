@@ -19,8 +19,6 @@ class Test_Uploads extends WP_Site_Cloner_UnitTestCase {
 
 	/**
 	 * Test that uploads are copied when a site is cloned.
-	 *
-	 * @group failure_010
 	 */
 	function test_uploads_copied() {
 		// "upload" random number of media files.
@@ -37,7 +35,7 @@ class Test_Uploads extends WP_Site_Cloner_UnitTestCase {
 			// check the attached file.
 			$attached_file = get_attached_file( $attachment_id );
 
-			$this->assertTrue( file_exists( $attached_file ), self::$known_to_failure_010_uploadds_not_copied );
+			$this->assertTrue( file_exists( $attached_file ) );
 
 			if ( wp_attachment_is_image( $attachment_id ) ) {
 				// check each intermediate size.
@@ -46,7 +44,7 @@ class Test_Uploads extends WP_Site_Cloner_UnitTestCase {
 				foreach ( $meta['sizes'] as $size ) {
 					$attached_file = str_replace( basename( $attached_file ), $size['file'], $attached_file );
 
-					$this->assertTrue( file_exists( $attached_file ), self::$known_to_failure_010_uploadds_not_copied );
+					$this->assertTrue( file_exists( $attached_file ) );
 				}
 			}
 		}
