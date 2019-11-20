@@ -133,6 +133,7 @@ final class WP_Site_Cloner {
 		@ini_set( 'max_execution_time', '0'     );
 
 		// Copy site and all of it's data
+		$this->copy_uploads();
 		$this->db_copy_tables();
 		$this->db_set_options();
 		$this->db_copy_users();
@@ -234,6 +235,39 @@ final class WP_Site_Cloner {
 		if ( ! is_super_admin( $this->arguments['user_id'] ) && ! get_user_meta( 'primary_blog', $this->arguments['user_id'], true ) ) {
 			update_user_meta( $this->arguments['user_id'], 'primary_blog', $this->to_site_id );
 		}
+	}
+
+	/**
+	 * Copy uploads from one site to another.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @return void
+	 */
+	protected function copy_uploads() {
+		// Switch to Source site and get uploads info
+		switch_to_blog( $this->from_site_id );
+
+		$wp_upload_info = wp_upload_dir();
+		$from_dir       = str_replace( ' ', "\\ ", trailingslashit( $wp_upload_info['basedir'] ) );
+
+		// Switch to Destination site and get uploads info
+		switch_to_blog( $this->to_site_id );
+
+		$wp_upload_info = wp_upload_dir();
+		$to_dir         = str_replace(' ', "\\ ", trailingslashit( $wp_upload_info['basedir'] ) );
+
+		// Go back to Source site.
+		restore_current_blog();
+
+		// if Source site is main site, don't copy upload/sites directory.
+		$exclude  = is_main_site( $this->from_site_id ) ? array( 'sites' ) : array();
+
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		WP_Filesystem();
+		copy_dir( $from_dir, $to_dir, $exclude );
+
+		return;
 	}
 
 	/**
