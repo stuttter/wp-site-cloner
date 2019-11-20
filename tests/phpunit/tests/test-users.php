@@ -36,6 +36,81 @@ class Test_Users extends WP_Site_Cloner_UnitTestCase {
 	}
 
 	/**
+	 * Test that strings are correctly replaced in user options.
+	 *
+	 * "User options" are user metas whose meta key begins with the blog's table prefix.
+	 */
+	function test_users_user_option() {
+		global $wpdb;
+
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
+
+		$upload_dir = $this->wp_get_upload_dir();
+		$option = array(
+			$wpdb->prefix,
+			get_option( 'siteurl' ),
+			$upload_dir['url'],
+		);
+		update_user_option( $user_id, 'test', $option );
+
+		$to_site_id = $this->subdirectory_clone_site();
+
+		switch_to_blog( $to_site_id );
+
+		// we must flush the cache(s) for this test to work.
+		// @todo I think there is a bug in core.  When get_users() (and/or get_user_by()) is called
+		//       and then switch_to_blog() is called, the subsequent calls to get_users() (and/or get_user_by()
+		//       will return the same results (except for the cap_key and site_id props) as before the switch.
+		self::flush_cache();
+
+		// check that strings ARE replaced in the meta value for a blog-specific meta key.
+		$upload_dir = $this->wp_get_upload_dir();
+		$expected   = array(
+			$wpdb->prefix,
+			get_option( 'siteurl' ),
+			$upload_dir['url'],
+		);
+		$actual = get_user_option( 'test', $user_id );
+
+		$this->assertEquals( $expected, $actual );
+	}
+
+	/**
+	 * Test that strings are correctly NOT replaced in user metas that are not user options.
+	 *
+	 * @see Test_Users::test_users_user_option()
+	 */
+	function test_users_user_meta() {
+		global $wpdb;
+
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
+
+		$upload_dir = $this->wp_get_upload_dir();
+		$option = array(
+			$wpdb->prefix,
+			get_option( 'siteurl' ),
+			$upload_dir['url'],
+		);
+		update_user_meta( $user_id, 'test', $option );
+
+		$to_site_id = $this->subdirectory_clone_site();
+
+		switch_to_blog( $to_site_id );
+
+		// we must flush the cache(s) for this test to work.
+		// @todo I think there is a bug in core.  When get_users() (and/or get_user_by()) is called
+		//       and then switch_to_blog() is called, the subsequent calls to get_users() (and/or get_user_by()
+		//       will return the same results (except for the cap_key and site_id props) as before the switch.
+		self::flush_cache();
+
+		// check that strings are NOT replaced in the meta value for a non-blog-specific meta key.
+		$expected = $option;
+		$actual   = get_user_meta( $user_id, 'test', true );
+
+		$this->assertEquals( $expected, $actual );
+	}
+
+	/**
 	 * Get a "comparible" array of users on the current site.
 	 *
 	 * By "comparible" we mean that those properties that are supposed to be different between sites
