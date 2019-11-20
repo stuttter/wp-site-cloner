@@ -497,6 +497,9 @@ final class WP_Site_Cloner {
 
 		// Setup global tables & fields to loop through.
 		$tables['usermeta'] = array( 'meta_value' );
+		if ( $this->is_site_meta_supported() ) {
+			$tables['blogmeta'] = array( 'meta_value' );
+		}
 
 		// Setup array of old & new strings to replace
 		if ( 0 === strpos( $to_upload_url, $to_blog_url ) ) {
@@ -850,5 +853,16 @@ final class WP_Site_Cloner {
 		$wpdb->show_errors();
 
 		return $results;
+	}
+
+	/**
+	 * Determines whether site meta is enabled.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @return bool True if site meta is supported, false otherwise.
+	 */
+	protected function is_site_meta_supported() {
+		return function_exists( 'is_site_meta_supported' ) && is_site_meta_supported();
 	}
 }
