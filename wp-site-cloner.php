@@ -135,6 +135,7 @@ final class WP_Site_Cloner {
 		// Copy site and all of it's data
 		$this->db_copy_tables();
 		$this->db_set_options();
+		$this->db_copy_users();
 		$this->db_update_data();
 
 		// Restore site options...because they will have been mucked with in db_update_data().
@@ -275,6 +276,68 @@ final class WP_Site_Cloner {
 	}
 
 	/**
+	 * Copy users (with their roles and user options) from one site to another.
+	 *
+	 * This does *not* perform string replacements in meta_values...that will happen in `WP_Site_Cloner::db_update_db()`.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @return void
+	 */
+	protected function db_copy_users() {
+		global $wpdb;
+
+		$from_site_prefix = $wpdb->get_blog_prefix( $this->from_site_id );
+		$to_site_prefix   = $wpdb->get_blog_prefix( $this->to_site_id );
+
+		// get all users on the from site, except for the user that we made the admin on the new site.
+		$args = array(
+			'blog_id' => $this->from_site_id,
+			'exclude' => $this->arguments['user_id']
+		);
+		$users = get_users( $args );
+
+		switch_to_blog( $this->to_site_id );
+
+		foreach ( $users as $user ) {
+			// get usermeta that is specific to the from site.
+			$sql_query = sprintf(
+				"SELECT `meta_key`, `meta_value` FROM `{$wpdb->usermeta}` WHERE `user_id` = %1\$d AND `meta_key` REGEXP '^%2\$s' AND `meta_key` NOT REGEXP '^%2\$s[[:digit:]]+_'",
+				$user->ID,
+				$from_site_prefix
+			);
+			$results = $this->do_sql_query( $sql_query, 'results' );
+
+			// Skip if no results
+			if ( empty( $results ) ) {
+				// @todo this should be an error condition, because every user that is a member
+				//       of a blog should have at least a `capabilities` usermeta.
+				continue;
+			}
+
+			// Loop through results and add a meta_key for the to site with the from site meta_value.
+			foreach ( $results as $row ) {
+				$row['meta_key'] = preg_replace( "/^{$from_site_prefix}/", $to_site_prefix, $row['meta_key'] );
+
+				$this->do_sql_query(
+					$wpdb->prepare(
+						"INSERT `{$wpdb->usermeta}` ( `user_id`, `meta_key`, `meta_value` ) VALUES( %s, %s, %s )",
+						$user->ID,
+						$row['meta_key'],
+						$row['meta_value']
+					)
+				);
+			}
+		}
+
+		restore_current_blog();
+
+		return;
+	}
+
+	/**
 	 * Options that should be preserved in the new blog.
 	 *
 	 * @since 0.1.0
@@ -398,6 +461,9 @@ final class WP_Site_Cloner {
 			$tables[ $table ] = $fields;
 		}
 
+		// Setup global tables & fields to loop through.
+		$tables['usermeta'] = array( 'meta_value' );
+
 		// Setup array of old & new strings to replace
 		if ( 0 === strpos( $to_upload_url, $to_blog_url ) ) {
 			// if $to_blog_url is a leading substring of $to_upload_url
@@ -422,10 +488,15 @@ final class WP_Site_Cloner {
 			);
 		}
 
+		// collect the global tables.
+		$global_tables = array_merge( $wpdb->global_tables, $wpdb->ms_global_tables );
+
 		// Try to update data in fields
 		foreach ( $tables as $table => $fields ) {
+			$table = ( in_array( $table, $global_tables ) ? $wpdb->base_prefix : $this->to_site_prefix ) . $table;
+
 			foreach ( $string_to_replace as $from_string => $to_string ) {
-				$this->update( $this->to_site_prefix . $table, $fields, $from_string, $to_string );
+				$this->update( $table, $fields, $from_string, $to_string );
 			}
 		}
 
@@ -460,7 +531,10 @@ final class WP_Site_Cloner {
 			// Bugfix : escape '_' , '%' and '/' character for mysql 'like' queries
 			$from_string_like = $wpdb->esc_like( $from_string );
 			$sql_query        = $wpdb->prepare( 'SELECT `' . $field . '` FROM `' . $table . '` WHERE `' . $field . '` LIKE "%s" ', '%' . $from_string_like . '%' );
-			$results          = $this->do_sql_query( $sql_query, 'results', false );
+			if ( $table === $wpdb->usermeta ) {
+				$sql_query .= sprintf( " AND `meta_key` REGEXP '^%s'", $wpdb->get_blog_prefix( $this->to_site_id ) );
+			}
+			$results = $this->do_sql_query( $sql_query, 'results', false );
 
 			// Skip if no results
 			if ( empty( $results ) ) {
@@ -469,6 +543,9 @@ final class WP_Site_Cloner {
 
 			// Build the update query
 			$update = 'UPDATE `' . $table . '` SET `' . $field . '` = "%s" WHERE `' . $field . '` = "%s"';
+			if ( $wpdb->usermeta === $table ) {
+				$update .= sprintf( " AND `meta_key` REGEXP '^%s'", $wpdb->get_blog_prefix( $this->to_site_id ) );
+			}
 
 			// Loop through results & replace any URL & site ID related values
 			foreach ( $results as $row ) {
