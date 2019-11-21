@@ -101,6 +101,37 @@ class Test_Posts extends WP_Site_Cloner_UnitTestCase {
 	}
 
 	/**
+	 * Test that string replacements happen correctly in post meta.
+	 */
+	function test_posts_post_meta() {
+		global $wpdb;
+
+		$post_id = self::factory()->post->create();
+
+		$upload_dir = $this->wp_get_upload_dir();
+		$meta = array(
+			$wpdb->prefix,
+			get_option( 'siteurl' ),
+			$upload_dir['url']
+		);
+		add_post_meta( $post_id, 'test', $meta );
+
+		$to_site_id = $this->subdirectory_clone_site();
+
+		switch_to_blog( $to_site_id );
+
+		$upload_dir = $this->wp_get_upload_dir();
+		$expected   = array(
+			$wpdb->prefix,
+			get_option( 'siteurl' ),
+			$upload_dir['url']
+		);
+		$actual = get_post_meta( $post_id, 'test', true );
+
+		$this->assertEquals( $expected, $actual );
+	}
+
+	/**
 	 * Generate post content that mimics a gallery block with 2 images.
 	 *
 	 * @since 0.2.0
