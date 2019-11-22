@@ -7,14 +7,6 @@
  */
 class WP_Site_Cloner_UnitTestCase extends WP_UnitTestCase {
 	/**
-	 * Message to use for failed assertions when we know they will fail in 0.1.0 because string replacements
-	 * aren't complete.
-	 *
-	 * @var string
-	 */
-	static $known_to_failure_010_string_replacement = 'Test known to fail in v0.1.0 because of incomplete string replacements.';
-
-	/**
 	 * Ensure there is a current user...since the current user is by default used as the admin user for cloned sites.
 	 *
 	 * @since 0.2.0

@@ -95,17 +95,17 @@ class Test_Options extends WP_Site_Cloner_UnitTestCase {
 
 	/**
 	 * Test that string replacements happen correctly in array values.
-	 *
-	 * @group failure_010
 	 */
 	function test_option_value_array_key() {
 		global $wpdb;
 
 		$upload_dir = $this->wp_get_upload_dir();
 		$option = array(
-			$wpdb->prefix => 'test',
+			$wpdb->prefix           => 'test',
+			// ensure the next key/value pair doesn't get overwritten when the first key gets replaced
+			"{$wpdb->prefix}2_"     => 'another test',
 			get_option( 'siteurl' ) => 'test',
-			$upload_dir['url'] => 'test',
+			$upload_dir['url']      => 'test',
 		);
 		add_option( 'test', $option );
 
@@ -115,13 +115,16 @@ class Test_Options extends WP_Site_Cloner_UnitTestCase {
 
 		$upload_dir = $this->wp_get_upload_dir();
 		$expected   = array(
-			$wpdb->prefix => 'test',
+			$wpdb->prefix           => 'test',
+			"{$wpdb->prefix}2_"     => 'another test',
 			get_option( 'siteurl' ) => 'test',
-			$upload_dir['url'] => 'test',
+			$upload_dir['url']      => 'test',
 		);
 		$actual = get_option( 'test' );
 
-		$this->assertEquals( $expected, $actual, self::$known_to_failure_010_string_replacement );
+		// note: we use === comparison because the order the keys is significant
+		//       and assertEquals() doesn't check the order of the keys.
+		$this->assertTrue( $expected === $actual );
 	}
 
 	/**
@@ -161,8 +164,6 @@ class Test_Options extends WP_Site_Cloner_UnitTestCase {
 
 	/**
 	 * Test that string replacements recusively happen in array keys.
-	 *
-	 * @group failure_010
 	 */
 	function test_option_value_array_key_recursive() {
 		global $wpdb;
@@ -171,6 +172,11 @@ class Test_Options extends WP_Site_Cloner_UnitTestCase {
 
 		$value = array(
 			$wpdb->prefix => array(
+				$wpdb->prefix,
+				get_option( 'siteurl' ),
+				$upload_dir['url'],
+			),
+			"{$wpdb->prefix}2" => array(
 				$wpdb->prefix,
 				get_option( 'siteurl' ),
 				$upload_dir['url'],
@@ -190,10 +196,17 @@ class Test_Options extends WP_Site_Cloner_UnitTestCase {
 				get_option( 'siteurl' ),
 				$upload_dir['url'],
 			),
+			"{$wpdb->prefix}2" => array(
+				$wpdb->prefix,
+				get_option( 'siteurl' ),
+				$upload_dir['url'],
+			),
 		);
 		$actual = get_option( 'test' );
 
-		$this->assertEquals( $expected, $actual, self::$known_to_failure_010_string_replacement );
+		// note: we use === comparison because the order the keys is significant
+		//       and assertEquals() doesn't check the order of the keys.
+		$this->assertTrue( $expected === $actual );
 	}
 
 	/**
