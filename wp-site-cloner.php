@@ -623,22 +623,23 @@ final class WP_Site_Cloner {
 	 * @param  mixed   (string|array) $val
 	 * @param  string  $from_string
 	 * @param  string  $to_string
+	 * @param  bool    $replace_keys
 	 *
 	 * @return string  the new string
 	 */
-	public function replace_recursive( $val, $from_string, $to_string ) {
-		$unset = array();
-
+	public function replace_recursive( $val, $from_string, $to_string, $replace_keys = true ) {
 		if ( is_array( $val ) ) {
 			foreach ( array_keys( $val ) as $k ) {
 				$val[ $k ] = $this->try_replace( $val, $k, $from_string, $to_string );
 			}
+
+			if ( $replace_keys ) {
+				$new_keys = $this->replace_recursive( array_keys( $val ), $from_string, $to_string, false );
+
+				$val      = array_combine( $new_keys, array_values( $val ) );
+ 			}
 		} else {
 			$val = $this->replace( $val, $from_string, $to_string );
-		}
-
-		foreach ( $unset as $k ) {
-			unset( $val[ $k ] );
 		}
 
 		return $val;
@@ -680,7 +681,7 @@ final class WP_Site_Cloner {
 			$row[ $field ] = $this->replace_recursive( $row[ $field ], $from_string, $to_string );
 		} elseif ( is_object( $row[ $field ] ) ) {
 			$array_object = $this->get_object_vars( $row[ $field ] );
-			$array_object = $this->replace_recursive( $array_object, $from_string, $to_string );
+			$array_object = $this->replace_recursive( $array_object, $from_string, $to_string, false );
 
 			$row[ $field ] = $this->set_object_vars( $row[ $field ], $array_object );
 		} elseif ( is_string( $row[ $field ] ) ) {
